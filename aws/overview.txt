@@ -60,67 +60,124 @@ dot-matrix-intelligence-briefing/
 - **shared/templates/**: Stores text templates for formatting the final report.
 - **docs/**: Contains guides on setting up AWS and configuring the Raspberry Pi.
 
-### **2. Detailed AWS Architecture Overview**
+
+-
+
+1. Overview of the MVP Technology Stack
+
+The MVP (Minimum Viable Product) for generating a daily intelligence briefing with a dot matrix printer using a Raspberry Pi and AWS involves several key technologies and services. The architecture is designed to be cost-effective, secure, and scalable for delivering comprehensive intelligence data to a physical printout. Here’s a detailed breakdown of the components involved:
+
+A. Technology Stack
+
+AWS Services:
+
+AWS Lambda: Serverless computing for fetching, processing, and formatting data from different APIs.
+
+AWS IoT Core: Manages secure communication between AWS and the Raspberry Pi for data transfer.
+
+AWS S3 (Optional): Storage for configuration files, templates, or logs.
+
+AWS CloudWatch: Monitors Lambda functions and logs any anomalies, useful for debugging and performance tracking.
+
+AWS Secrets Manager: Stores API keys securely, ensuring sensitive data is managed properly.
+
+Raspberry Pi:
+
+Hardware: A Raspberry Pi with GPIO pins for button integration and a USB or parallel interface for the dot matrix printer.
+
+OS: Raspberry Pi OS (or any Linux distribution compatible with Raspberry Pi).
+
+Python Scripts: For subscribing to AWS IoT topics, aggregating data, formatting, and initiating print commands.
+
+Physical Button: Connected to GPIO pins for triggering the process.
+
+Dot Matrix Printer:
+
+Connection Interface: USB or parallel interface connected to the Raspberry Pi.
+
+Printer Management: CUPS (Common Unix Printing System) for managing print jobs.
+
+
+2. Detailed AWS Architecture Overview
 
 The AWS architecture is designed to manage and streamline the flow of data from multiple sources, process it securely, and provide it to the Raspberry Pi for printing. Below is a comprehensive overview of each AWS service used and its role in the solution.
 
-#### **A. AWS Components**
+A. AWS Components
 
-1. **AWS Lambda Functions**
-   - Fetch data from external APIs (e.g., weather, stock market, security alerts).
-   - Process and clean the data, transforming it into a simplified JSON format.
-   - Publish the JSON payload to AWS IoT Core for Raspberry Pi consumption.
+AWS Lambda Functions
 
-2. **AWS IoT Core**
-   - Acts as the communication bridge between AWS services and the Raspberry Pi.
-   - Facilitates secure, bi-directional communication using MQTT protocol.
-   - Raspberry Pi subscribes to topics like `intelligence-briefing/weather`, `intelligence-briefing/security`, etc.
+Fetch data from external APIs (e.g., weather, stock market, security alerts).
 
-3. **AWS CloudWatch**
-   - Monitors Lambda functions for performance and error logging.
-   - Creates alarms for unexpected behaviors or failures in any Lambda function.
+Process and clean the data, transforming it into a simplified JSON format.
 
-4. **AWS Secrets Manager**
-   - Manages sensitive information such as API keys for third-party services.
-   - Accessible only by Lambda functions with the proper IAM roles to ensure security.
+Publish the JSON payload to AWS IoT Core for Raspberry Pi consumption.
 
-5. **AWS IAM Policies**
-   - Each Lambda function has an attached IAM role that grants it least-privilege permissions.
-   - Policies include access to Secrets Manager, IoT Core, and CloudWatch logging.
+AWS IoT Core
 
-### **3. Raspberry Pi and Printing Workflow**
+Acts as the communication bridge between AWS services and the Raspberry Pi.
+
+Facilitates secure, bi-directional communication using MQTT protocol.
+
+Raspberry Pi subscribes to topics like intelligence-briefing/weather, intelligence-briefing/security, etc.
+
+AWS CloudWatch
+
+Monitors Lambda functions for performance and error logging.
+
+Creates alarms for unexpected behaviors or failures in any Lambda function.
+
+AWS Secrets Manager
+
+Manages sensitive information such as API keys for third-party services.
+
+Accessible only by Lambda functions with the proper IAM roles to ensure security.
+
+AWS IAM Policies
+
+Each Lambda function has an attached IAM role that grants it least-privilege permissions.
+
+Policies include access to Secrets Manager, IoT Core, and CloudWatch logging.
+
+3. Raspberry Pi and Printing Workflow
 
 The Raspberry Pi is responsible for aggregating the data from AWS IoT Core, formatting it, and sending it to the printer. Below is a detailed description of each step:
 
-#### **A. Physical Button Integration**
+A. Physical Button Integration
 
-- The physical button is connected to the Raspberry Pi's GPIO pins.
-- **`button_listener.py`** script listens for button presses. Once detected, it triggers the entire workflow, starting with **`print_daemon.py`**.
+The physical button is connected to the Raspberry Pi's GPIO pins.
 
-#### **B. Data Aggregation and Processing**
+The button_listener.py script listens for button presses. Once detected, it triggers the entire workflow, starting with print_daemon.py.
 
-1. **Data Fetching (`print_daemon.py`)**
-   - Subscribes to AWS IoT Core topics using AWS IoT SDK (`boto3` and `AWSIoTPythonSDK`).
-   - Receives data payloads from each topic (e.g., `intelligence-briefing/weather`, `intelligence-briefing/market`).
+B. Data Aggregation and Processing
 
-2. **Data Aggregation (`data_aggregator.py`)**
-   - Aggregates data from multiple sources into a single JSON structure.
-   - Handles error-checking and data validation, ensuring all necessary fields are available.
+Data Fetching (print_daemon.py)
 
-3. **Data Formatting (`data_formatter.py`)**
-   - Formats the aggregated JSON data into the **`briefing_template.txt`**.
-   - Uses ASCII headers, dividers, tables, and graphs to ensure the printed document follows the established design language.
+Subscribes to AWS IoT Core topics using AWS IoT SDK (boto3 and AWSIoTPythonSDK).
 
-#### **C. Printing**
+Receives data payloads from each topic (e.g., intelligence-briefing/weather, intelligence-briefing/market).
 
-- **`printer_interface.py`** uses CUPS to send formatted text to the dot matrix printer.
-- Saves the formatted data as `/tmp/briefing.txt` before executing the print command (`lp /tmp/briefing.txt`).
+Data Aggregation (data_aggregator.py)
 
-### **4. Visual Representation of AWS Architecture**
+Aggregates data from multiple sources into a single JSON structure.
+
+Handles error-checking and data validation, ensuring all necessary fields are available.
+
+Data Formatting (data_formatter.py)
+
+Formats the aggregated JSON data into the briefing_template.txt.
+
+Uses ASCII headers, dividers, tables, and graphs to ensure the printed document follows the established design language.
+
+C. Printing
+
+printer_interface.py uses CUPS to send formatted text to the dot matrix printer.
+
+Saves the formatted data as /tmp/briefing.txt before executing the print command (lp /tmp/briefing.txt).
+
+4. Visual Representation of AWS Architecture
 
 Here’s a visual representation of the AWS architecture in ASCII format, followed by a detailed textual explanation:
 
-```
 +----------------------+       +--------------------+      +-------------------+
 |   External APIs      |       | AWS Lambda         |      | AWS IoT Core      |
 | (Weather, Market,    |  ---> | (Fetch & Process   | ---> | MQTT Topics       |
@@ -141,56 +198,65 @@ Here’s a visual representation of the AWS architecture in ASCII format, follow
            |  (Subscribe to    | ----> |  Printer          |
            |  AWS IoT Topics)  |       |  (Print Briefing) |
            +-------------------+       +-------------------+
-```
 
-**Explanation**:
+Explanation:
 
-1. **External APIs**: Data is pulled from various public and proprietary sources, such as OpenWeatherMap, MarineTraffic, FBI.gov, and Alpha Vantage.
+External APIs: Data is pulled from various public and proprietary sources, such as OpenWeatherMap, MarineTraffic, FBI.gov, and Alpha Vantage.
 
-2. **AWS Lambda**: Each Lambda function is dedicated to fetching data from one source, processing it, and publishing the cleaned and formatted data to relevant AWS IoT Core topics.
+AWS Lambda: Each Lambda function is dedicated to fetching data from one source, processing it, and publishing the cleaned and formatted data to relevant AWS IoT Core topics.
 
-3. **AWS IoT Core**: Acts as the message broker that the Raspberry Pi subscribes to in order to gather information securely.
+AWS IoT Core: Acts as the message broker that the Raspberry Pi subscribes to in order to gather information securely.
 
-4. **AWS Secrets Manager**: Handles sensitive API keys to ensure they are not hardcoded within the Lambda functions. This guarantees a secure way to manage access to APIs.
+AWS Secrets Manager: Handles sensitive API keys to ensure they are not hardcoded within the Lambda functions. This guarantees a secure way to manage access to APIs.
 
-5. **AWS CloudWatch**: Provides monitoring, alerting, and logging for Lambda functions, making it easier to debug and identify issues during the data-fetching phase.
+AWS CloudWatch: Provides monitoring, alerting, and logging for Lambda functions, making it easier to debug and identify issues during the data-fetching phase.
 
-6. **Raspberry Pi**: Connects to AWS IoT Core via MQTT to retrieve data from the specific topics (`intelligence-briefing/weather`, etc.). The data is then aggregated and formatted.
+Raspberry Pi: Connects to AWS IoT Core via MQTT to retrieve data from specific topics (intelligence-briefing/weather, etc.). The data is then aggregated and formatted.
 
-7. **Dot Matrix Printer**: The final report is formatted as per the template and sent to the dot matrix printer using CUPS.
+Dot Matrix Printer: The final report is formatted as per the template and sent to the dot matrix printer using CUPS.
 
-### **5. Pre-Processing and Post-Processing Details**
+5. Pre-Processing and Post-Processing Details
 
-#### **A. Pre-Processing**
-- **Normalization**: Data normalization occurs within Lambda functions, ensuring uniform data types across sources (e.g., all temperatures converted to Fahrenheit).
-- **Error Handling and Retries**: Lambda functions incorporate retry mechanisms to handle failed API calls.
+A. Pre-Processing
 
-#### **B. Post-Processing**
-- **Data Integrity Checks**: Once data is received by the Raspberry Pi, it is validated to ensure all fields are populated, reducing the risk of incomplete briefings.
-- **Logging**: Logs are generated for every step, from button press detection to successful printing, enabling a detailed audit trail.
+Normalization: Data normalization occurs within Lambda functions, ensuring uniform data types across sources (e.g., all temperatures converted to Fahrenheit).
 
-### **6. Button-Triggered Workflow**
+Error Handling and Retries: Lambda functions incorporate retry mechanisms to handle failed API calls.
 
-1. **Button Press Detection**:
-   - The physical button is pressed, and **`button_listener.py`** triggers the **`print_daemon.py`** script.
+B. Post-Processing
 
-2. **Data Retrieval**:
-   - The Raspberry Pi subscribes to AWS IoT Core topics and fetches relevant data.
+Data Integrity Checks: Once data is received by the Raspberry Pi, it is validated to ensure all fields are populated, reducing the risk of incomplete briefings.
 
-3. **Data Aggregation**:
-   - The **`data_aggregator.py`** consolidates the data from all available topics.
+Logging: Logs are generated for every step, from button press detection to successful printing, enabling a detailed audit trail.
 
-4. **Formatting and Printing**:
-   - **`data_formatter.py`** formats the data according to the predefined template.
-   - The **`printer_interface.py`** sends the formatted file to the dot matrix printer.
+6. Button-Triggered Workflow
 
-### **7. Diagram Description and Conclusion**
+Button Press Detection:
+
+The physical button is pressed, and button_listener.py triggers the print_daemon.py script.
+
+Data Retrieval:
+
+The Raspberry Pi subscribes to AWS IoT Core topics and fetches relevant data.
+
+Data Aggregation:
+
+The data_aggregator.py consolidates the data from all available topics.
+
+Formatting and Printing:
+
+data_formatter.py formats the data according to the predefined template.
+
+The printer_interface.py sends the formatted file to the dot matrix printer.
+
+7. Diagram Description and Conclusion
 
 The architecture has been designed to ensure a smooth flow from data gathering to printing, with each AWS service playing a critical role.
 
-- **Serverless Design**: Using AWS Lambda ensures low cost and scalability, making this architecture efficient.
-- **Security Focus**: The use of IAM policies and AWS Secrets Manager guarantees the secure handling of sensitive information.
-- **Edge Processing**: The Raspberry Pi manages final formatting and printing, minimizing latency and making it responsive.
+Serverless Design: Using AWS Lambda ensures low cost and scalability, making this architecture efficient.
+
+Security Focus: The use of IAM policies and AWS Secrets Manager guarantees the secure handling of sensitive information.
+
+Edge Processing: The Raspberry Pi manages final formatting and printing, minimizing latency and making it responsive.
 
 This MVP architecture provides a seamless way to generate comprehensive daily briefings with a retro-inspired dot matrix printout at the push of a button, leveraging modern cloud infrastructure for data processing while retaining a vintage delivery method.
-
