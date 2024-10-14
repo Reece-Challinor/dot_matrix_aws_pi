@@ -35,6 +35,7 @@ def main():
                 logging.info("Button pressed.")
                 wp.digitalWrite(LED_PIN, wp.HIGH)
                 try:
+                    # TODO: Ensure print_daemon.py exists and is executable
                     subprocess.run(["python3", "print_daemon.py"], check=True)
                     logging.info("Print daemon triggered successfully.")
                 except subprocess.CalledProcessError as e:

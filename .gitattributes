@@ -1,2 +1,18 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Handle line endings for specific file types
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Treat all files as binary (no end-of-line conversion)
+*.jpg binary
+*.png binary
+*.gif binary
+
+# Set default behavior for merge conflicts
+*.md merge=union
+
+# Custom diff for specific file types
+*.json diff=json
+*.xml diff=xml
