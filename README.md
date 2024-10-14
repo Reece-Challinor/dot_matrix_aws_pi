@@ -2,24 +2,21 @@
 
 Welcome to the Dot Matrix Intelligence Briefing System repository! This project combines modern AWS services with vintage computing to create a unique, interactive daily intelligence report, printed on a Panasonic KX-P1592 dot matrix printer via a Raspberry Pi at the press of a button. This project is designed to be an entertaining exploration of AWS architecture, IoT, and retro hardware integration. It's perfect for showing off practical AWS skills with a nostalgic flair. 🚀✨
 
-Project Overview 📈💡
+## Project Overview 📈💡
 
 The aim is to build an MVP that aggregates data from various open APIs (weather, security, market) using AWS services, formats the data into a daily intelligence report, and prints it via a classic dot matrix printer. This project includes the integration of modern technologies such as AWS Lambda, S3, DynamoDB, and IoT Core with the Raspberry Pi and the dot matrix printer, controlled with a simple push button.
 
-Project Features
+## Project Features
 
-🤖 Automated Data Aggregation using AWS Lambda
+- 🤖 Automated Data Aggregation using AWS Lambda
+- 🔒 Secure API Key Management via AWS Secrets Manager
+- 📡 Real-Time Communication between AWS and Raspberry Pi using AWS IoT Core
+- 🖨️ Vintage Dot Matrix Printing for daily intelligence briefings
+- ⚙️ Retro Aesthetic: ASCII text formatting with classic dot matrix printing
 
-🔒 Secure API Key Management via AWS Secrets Manager
+## File Structure 📂
 
-📡 Real-Time Communication between AWS and Raspberry Pi using AWS IoT Core
-
-🖨️ Vintage Dot Matrix Printing for daily intelligence briefings
-
-⚙️ Retro Aesthetic: ASCII text formatting with classic dot matrix printing
-
-File Structure 📂
-
+```
 dot-matrix-intelligence-printer/
 ├── README.md
 ├── hardware/
@@ -48,101 +45,86 @@ dot-matrix-intelligence-printer/
     │   └── briefing_template.txt
     └── utils/
         └── data_formatter.py
+```
 
-Repository Breakdown 🛠️
+## Repository Breakdown 🛠️
 
-hardware/: Contains diagrams and details of the physical components and connections.
+- **hardware/**: Contains diagrams and details of the physical components and connections.
+- **raspberry_pi/**: Python scripts running on the Raspberry Pi, including the button listener, print daemon, and data aggregation logic.
+- **docs/**: Guides for setting up hardware, AWS configuration, and debugging printer issues.
+- **aws/**: Contains serverless code (Lambda functions) for data aggregation and IAM policies.
+- **shared/**: Includes templates for formatting printed reports and utility scripts for data processing.
 
-raspberry_pi/: Python scripts running on the Raspberry Pi, including the button listener, print daemon, and data aggregation logic.
+## Approach & Architecture 🌐🧩
 
-docs/: Guides for setting up hardware, AWS configuration, and debugging printer issues.
+### High-Level Architecture Diagram
 
-aws/: Contains serverless code (Lambda functions) for data aggregation and IAM policies.
-
-shared/: Includes templates for formatting printed reports and utility scripts for data processing.
-
-Approach & Architecture 🌐🧩
-
-High-Level Architecture Diagram
-
+```
 [Push Button] --> [Raspberry Pi] --> [AWS IoT Core] <--> [AWS Lambda Functions]
                 |                                     |
             [Printer] <-- [CUPS on Pi] <-- [Data from S3/DynamoDB]
+```
 
-Push Button: Triggers the Raspberry Pi to start the data aggregation process.
+- **Push Button**: Triggers the Raspberry Pi to start the data aggregation process.
+- **Raspberry Pi**: Runs scripts to pull data from AWS and initiate the printing process.
+- **AWS Lambda**: Collects data from various open-source APIs and pushes it to AWS IoT Core.
+- **AWS IoT Core**: Facilitates real-time communication between Lambda and the Raspberry Pi.
+- **S3 & DynamoDB**: Stores historical data and report templates for use in report generation.
 
-Raspberry Pi: Runs scripts to pull data from AWS and initiate the printing process.
+## How It Works ⚙️
 
-AWS Lambda: Collects data from various open-source APIs and pushes it to AWS IoT Core.
+1. **Button Press**: A physical button press triggers the Raspberry Pi to start the daily process.
+2. **Data Aggregation**: The Raspberry Pi connects to AWS IoT Core, which subscribes to MQTT topics published by Lambda functions.
+3. **Data Formatting**: Aggregated data is formatted using ASCII templates.
+4. **Printing**: The formatted briefing is printed by the Panasonic dot matrix printer.
 
-AWS IoT Core: Facilitates real-time communication between Lambda and the Raspberry Pi.
+## Getting Started 🏁
 
-S3 & DynamoDB: Stores historical data and report templates for use in report generation.
+### Initial Setup Steps
 
-How It Works ⚙️
+1. **Clone the Repository**:
+    ```sh
+    git clone https://github.com/your-username/dot-matrix-intelligence-printer.git
+    cd dot-matrix-intelligence-printer
+    ```
 
-Button Press: A physical button press triggers the Raspberry Pi to start the daily process.
+2. **Install Dependencies**:
+    ```sh
+    pip install -r raspberry_pi/requirements.txt
+    ```
 
-Data Aggregation: The Raspberry Pi connects to AWS IoT Core, which subscribes to MQTT topics published by Lambda functions.
+3. **Setup Raspberry Pi**:
+    - Install CUPS for printer management.
+    - Set up AWS IoT credentials for Raspberry Pi.
 
-Data Formatting: Aggregated data is formatted using ASCII templates.
-
-Printing: The formatted briefing is printed by the Panasonic dot matrix printer.
-
-Getting Started 🏁
-
-Initial Setup Steps
-
-Clone the Repository:
-
-git clone https://github.com/your-username/dot-matrix-intelligence-printer.git
-cd dot-matrix-intelligence-printer
-
-Install Dependencies:
-
-Install Python requirements:
-
-pip install -r raspberry_pi/requirements.txt
-
-Setup Raspberry Pi:
-
-Install CUPS for printer management.
-
-Set up AWS IoT credentials for Raspberry Pi.
-
-Contributing 🤝✨
+## Contributing 🤝✨
 
 Contributions are welcome! Please fork this repository, create a branch, make your changes, and submit a pull request. We use conventional commits for versioning.
 
-Tag releases with 🎉 for major changes, 🛠️ for bug fixes, and ✨ for new features.
+- Tag releases with 🎉 for major changes, 🛠️ for bug fixes, and ✨ for new features.
+- **Good First Issues**: Check out our beginner-friendly tasks to get started.
 
-Good First Issues: Check out our beginner-friendly tasks to get started.
+## Tags & Branches 🏷️
 
-Tags & Branches 🏷️
+### Branches:
 
-Branches:
+- **main**: Stable production code.
+- **dev**: Experimental and new feature integration.
 
-main: Stable production code.
+### Tags:
 
-dev: Experimental and new feature integration.
+- **v0.1**: Initial setup and MVP testing.
+- **v1.0**: First complete version with AWS integration.
 
-Tags:
+## Architectural Diagrams & ASCII Drawings ✏️💻
 
-v0.1: Initial setup and MVP testing.
+All architectural diagrams are available in `docs/aws_configuration.md`. For that retro touch, ASCII diagrams have been provided to showcase the physical and digital flow of the project.
 
-v1.0: First complete version with AWS integration.
-
-Architectural Diagrams & ASCII Drawings ✏️💻
-
-All architectural diagrams are available in docs/aws_configuration.md.
-
-For that retro touch, ASCII diagrams have been provided to showcase the physical and digital flow of the project.
-
-
-License 📜
+## License 📜
 
 This project is licensed under the MIT License. Feel free to use, modify, and distribute it as per the license terms.
 
-Acknowledgments 🙌✨
+## Acknowledgments 🙌✨
 
 Special thanks to the vintage computing community and AWS for providing the tools and inspiration to make projects like this possible. Enjoy the fun mix of old-school printing and modern cloud infrastructure! 🖨️☁️🚀
+
