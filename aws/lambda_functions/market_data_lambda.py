@@ -13,6 +13,12 @@ TABLE_NAME = 'MarketData'
 # Public API URL
 API_URL = 'https://api.example.com/marketdata'
 
+def normalize_data(data):
+    # Example normalization: Convert temperature to Fahrenheit if present
+    if 'temperature' in data:
+        data['temperature'] = data['temperature'] * 9/5 + 32
+    return data
+
 def lambda_handler(event, context):
     try:
         # Fetch market data from public API
@@ -20,11 +26,14 @@ def lambda_handler(event, context):
         response.raise_for_status()
         market_data = response.json()
 
+        # Normalize the data
+        normalized_data = normalize_data(market_data)
+
         # Format the data
         formatted_data = {
-            'id': market_data['id'],
-            'price': market_data['price'],
-            'timestamp': market_data['timestamp']
+            'id': normalized_data['id'],
+            'price': normalized_data['price'],
+            'timestamp': normalized_data['timestamp']
         }
 
         # Store data in DynamoDB

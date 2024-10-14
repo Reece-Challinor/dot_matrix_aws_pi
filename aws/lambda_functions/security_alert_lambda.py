@@ -8,6 +8,14 @@ iot_client = boto3.client('iot-data')
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('SecurityAlerts')
 
+def normalize_data(alert):
+    # Example normalization: Convert temperature to Fahrenheit if it's in Celsius
+    if 'temperature' in alert:
+        if alert.get('unit') == 'C':
+            alert['temperature'] = alert['temperature'] * 9/5 + 32
+            alert['unit'] = 'F'
+    return alert
+
 def lambda_handler(event, context):
     try:
         # Query the security alert API
@@ -17,7 +25,8 @@ def lambda_handler(event, context):
 
         # Process and send data to AWS IoT Core
         for alert in alerts:
-            payload = json.dumps(alert)
+            normalized_alert = normalize_data(alert)
+            payload = json.dumps(normalized_alert)
             iot_client.publish(
                 topic='security/alerts',
                 qos=1,
@@ -25,7 +34,7 @@ def lambda_handler(event, context):
             )
 
             # Store a copy in DynamoDB
-            table.put_item(Item=alert)
+            table.put_item(Item=normalized_alert)
 
         return {
             'statusCode': 200,

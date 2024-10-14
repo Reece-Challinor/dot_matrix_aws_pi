@@ -15,12 +15,21 @@ API_URL = 'http://api.openweathermap.org/data/2.5/weather'
 API_KEY = 'your_openweathermap_api_key'
 CITY = 'your_city'
 
+def kelvin_to_fahrenheit(kelvin):
+    """Convert temperature from Kelvin to Fahrenheit."""
+    return (kelvin - 273.15) * 9/5 + 32
+
 def lambda_handler(event, context):
+    """AWS Lambda handler to fetch, normalize, store weather data and publish to IoT Core."""
     try:
         # Fetch weather data from OpenWeatherMap API
         response = requests.get(API_URL, params={'q': CITY, 'appid': API_KEY})
         response.raise_for_status()
         weather_data = response.json()
+        
+        # Normalize temperature data to Fahrenheit
+        if 'main' in weather_data and 'temp' in weather_data['main']:
+            weather_data['main']['temp'] = kelvin_to_fahrenheit(weather_data['main']['temp'])
         
         # Store weather data in DynamoDB
         table = dynamodb.Table(DYNAMODB_TABLE)
@@ -39,7 +48,7 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 200,
-            'body': json.dumps('Weather data successfully retrieved and stored.')
+            'body': json.dumps('Weather data successfully retrieved, normalized, and stored.')
         }
     
     except requests.exceptions.RequestException as e:

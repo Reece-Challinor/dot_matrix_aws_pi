@@ -1,5 +1,13 @@
 import json
 
+def normalize_data(json_data):
+    # Example normalization: Convert all temperatures to Fahrenheit
+    if 'table' in json_data:
+        for item in json_data['table']:
+            if 'Temperature' in item:
+                item['Temperature'] = item['Temperature'] * 9/5 + 32  # Assuming the input is in Celsius
+    return json_data
+
 def format_header(title):
     return f"{'=' * 40}\n{title.center(40)}\n{'=' * 40}\n"
 
@@ -21,6 +29,9 @@ def format_bullet_points(points):
     return '\n'.join([f"- {point}" for point in points])
 
 def format_json_to_ascii(json_data):
+    # Normalize the data
+    json_data = normalize_data(json_data)
+    
     formatted_output = ""
     
     if 'header' in json_data:
@@ -50,8 +61,8 @@ if __name__ == "__main__":
             {"title": "Summary", "content": "This is the summary section."}
         ],
         "table": [
-            {"Name": "Alice", "Age": 30, "Occupation": "Engineer"},
-            {"Name": "Bob", "Age": 25, "Occupation": "Designer"}
+            {"Name": "Alice", "Age": 30, "Occupation": "Engineer", "Temperature": 20},
+            {"Name": "Bob", "Age": 25, "Occupation": "Designer", "Temperature": 22}
         ],
         "bullet_points": ["Point 1", "Point 2", "Point 3"],
         "footer": "End of Briefing"
