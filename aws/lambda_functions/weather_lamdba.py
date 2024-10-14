@@ -46,12 +46,19 @@ def lambda_handler(event, context):
         print(f"Error fetching weather data: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps('Failed to fetch weather data.')
+            'body': json.dumps(f'Failed to fetch weather data: {e}')
         }
     
     except ClientError as e:
         print(f"Error with AWS operation: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps('Failed to perform AWS operation.')
+            'body': json.dumps(f'Failed to perform AWS operation: {e}')
+        }
+    
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps(f'An unexpected error occurred: {e}')
         }
