@@ -8,11 +8,11 @@ The aim is to build an MVP that aggregates data from various open APIs (weather,
 
 ## Project Features
 
-- 🤖 Automated Data Aggregation using AWS Lambda
-- 🔒 Secure API Key Management via AWS Secrets Manager
-- 📡 Real-Time Communication between AWS and Raspberry Pi using AWS IoT Core
-- 🖨️ Vintage Dot Matrix Printing for daily intelligence briefings
-- ⚙️ Retro Aesthetic: ASCII text formatting with classic dot matrix printing
+- 🤖 **Automated Data Aggregation** using AWS Lambda
+- 🔒 **Secure API Key Management** via AWS Secrets Manager
+- 📡 **Real-Time Communication** between AWS and Raspberry Pi using AWS IoT Core
+- 🖨️ **Vintage Dot Matrix Printing** for daily intelligence briefings
+- ⚙️ **Retro Aesthetic**: ASCII text formatting with classic dot matrix printing
 
 ## File Structure 📂
 
@@ -59,17 +59,48 @@ dot-matrix-intelligence-printer/
 
 ### High-Level Architecture Diagram
 
-```
-[Push Button] --> [Raspberry Pi] --> [AWS IoT Core] <--> [AWS Lambda Functions]
-                |                                     |
-            [Printer] <-- [CUPS on Pi] <-- [Data from S3/DynamoDB]
+```mermaid
+graph TD;
+    A[Push Button] --> B[Raspberry Pi];
+    B --> C[AWS IoT Core];
+    C <--> D[AWS Lambda Functions];
+    B --> E[Printer];
+    E <-- F[CUPS on Pi];
+    F <-- G[Data from S3/DynamoDB];
 ```
 
-- **Push Button**: Triggers the Raspberry Pi to start the data aggregation process.
-- **Raspberry Pi**: Runs scripts to pull data from AWS and initiate the printing process.
-- **AWS Lambda**: Collects data from various open-source APIs and pushes it to AWS IoT Core.
-- **AWS IoT Core**: Facilitates real-time communication between Lambda and the Raspberry Pi.
-- **S3 & DynamoDB**: Stores historical data and report templates for use in report generation.
+### ASCII Diagram
+
+```
++-------------------+
+|    Push Button    |
++-------------------+
+         |
+         v
++-------------------+
+|   Raspberry Pi    |
++-------------------+
+         |
+         v
++-------------------+       +-------------------+
+|   AWS IoT Core    | <-->  | AWS Lambda Funcs  |
++-------------------+       +-------------------+
+         |
+         v
++-------------------+
+|      Printer      |
++-------------------+
+         ^
+         |
++-------------------+
+|   CUPS on Pi      |
++-------------------+
+         ^
+         |
++-------------------+
+| Data from S3/DB   |
++-------------------+
+```
 
 ## How It Works ⚙️
 
@@ -127,4 +158,3 @@ This project is licensed under the MIT License. Feel free to use, modify, and di
 ## Acknowledgments 🙌✨
 
 Special thanks to the vintage computing community and AWS for providing the tools and inspiration to make projects like this possible. Enjoy the fun mix of old-school printing and modern cloud infrastructure! 🖨️☁️🚀
-
