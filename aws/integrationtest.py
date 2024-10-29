@@ -237,5 +237,42 @@ class TestAWSIntegration(unittest.TestCase):
         """Clean up shared resources"""
         pass
 
+    def test_aws_service_availability(self):
+        """Test the availability of AWS services"""
+        services = {
+            'IoT Data Plane': self.iot_client.describe_endpoint,
+            'DynamoDB': self.dynamodb_client.list_tables,
+            'Lambda': self.lambda_client.list_functions,
+            'S3': self.s3_client.list_buckets,
+            'Secrets Manager': self.secrets_client.list_secrets
+        }
+        unavailable_services = []
+        for service_name, func in services.items():
+            try:
+                func()
+            except ClientError as e:
+                logger.error(f"{service_name} is unavailable: {str(e)}")
+                unavailable_services.append(service_name)
+        self.assertFalse(unavailable_services, f"Unavailable services: {unavailable_services}")
+
+    def test_iot_connectivity(self):
+        """Test connectivity to AWS IoT Core"""
+        try:
+            response = self.iot_client.get_thing_shadow(
+                thingName='test_thing'
+            )
+            self.assertEqual(response['ResponseMetadata']['HTTPStatusCode'], 200)
+        except ClientError as e:
+            self.fail(f"IoT connectivity test failed: {str(e)}")
+
+    def test_lambda_permissions(self):
+        """Test that Lambda functions have correct permissions"""
+        for function_name in self.lambda_functions.values():
+            try:
+                policy = self.lambda_client.get_policy(FunctionName=function_name)
+                self.assertIn('Policy', policy)
+            except ClientError as e:
+                self.fail(f"Lambda permissions test failed for {function_name}: {str(e)}")
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

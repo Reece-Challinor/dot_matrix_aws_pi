@@ -2,7 +2,7 @@ import json
 import boto3
 import time
 from typing import Dict, Any
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoCredentialsError
 
 # Initialize AWS clients
 secrets_client = boto3.client('secretsmanager', region_name='us-east-1')
@@ -11,17 +11,16 @@ table = dynamodb.Table('IntelligenceBriefingData')
 
 def get_api_key(secret_name: str) -> str:
     """
-    Retrieve API key from AWS Secrets Manager.
-    
+    Retrieve the API key from AWS Secrets Manager.
+
     Args:
-        secret_name (str): Name of the secret in AWS Secrets Manager
-        
+        secret_name (str): The name of the secret in AWS Secrets Manager.
+
     Returns:
-        str: The API key
-        
+        str: The retrieved API key.
+
     Raises:
-        ClientError: If there's an error retrieving the secret
-        KeyError: If the expected key isn't found in the secret
+        Exception: If the secret cannot be retrieved.
     """
     try:
         secret_value = secrets_client.get_secret_value(SecretId=secret_name)
@@ -30,16 +29,15 @@ def get_api_key(secret_name: str) -> str:
         error_code = e.response['Error']['Code']
         error_message = e.response['Error']['Message']
         raise Exception(f"Failed to retrieve secret: {error_code} - {error_message}")
+    except NoCredentialsError as e:
+        raise Exception(f"No AWS credentials found: {str(e)}")
 
 def store_weather_data(api_key: str) -> None:
     """
     Store weather data in DynamoDB.
-    
+
     Args:
-        api_key (str): The API key to be used for weather data retrieval
-        
-    Raises:
-        ClientError: If there's an error writing to DynamoDB
+        api_key (str): The API key used to retrieve weather data.
     """
     item = {
         'DataType': 'weather',
@@ -52,14 +50,14 @@ def store_weather_data(api_key: str) -> None:
 
 def create_response(status_code: int, message: str) -> Dict[str, Any]:
     """
-    Create a standardized API response.
-    
+    Create a standardized HTTP response.
+
     Args:
-        status_code (int): HTTP status code
-        message (str): Response message
-        
+        status_code (int): The HTTP status code.
+        message (str): The response message.
+
     Returns:
-        Dict[str, Any]: Formatted API response
+        Dict[str, Any]: The HTTP response.
     """
     return {
         'statusCode': status_code,
@@ -75,14 +73,14 @@ def create_response(status_code: int, message: str) -> Dict[str, Any]:
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    Main Lambda handler function.
-    
+    The main Lambda handler function.
+
     Args:
-        event (Dict[str, Any]): Lambda event data
-        context (Any): Lambda context
-        
+        event (Dict[str, Any]): The event data passed to the Lambda function.
+        context (Any): The runtime information of the Lambda function.
+
     Returns:
-        Dict[str, Any]: API response
+        Dict[str, Any]: The response from the Lambda function.
     """
     try:
         # Retrieve API key
