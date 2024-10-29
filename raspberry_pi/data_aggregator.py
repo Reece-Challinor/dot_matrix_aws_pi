@@ -1,5 +1,9 @@
 import datetime
 from typing import Dict, List, Any
+import json
+import threading
+import time
+import paho.mqtt.client as mqtt
 
 class BriefingFormatter:
     def __init__(self):
@@ -144,60 +148,67 @@ class BriefingFormatter:
         return "\n".join(briefing)
 
 
-def format_data_for_printing(data: Dict[str, Any]) -> str:
+class DataAggregator:
+    def __init__(self):
+        self.latest_data = None
+        self.mqtt_client = None
+        self.setup_mqtt()
+
+    def setup_mqtt(self):
+        """Set up MQTT client to connect to AWS IoT Core."""
+        self.mqtt_client = mqtt.Client()
+        self.mqtt_client.tls_set(
+            ca_certs="AmazonRootCA1.pem",
+            certfile="device.pem.crt",
+            keyfile="private.pem.key"
+        )
+        self.mqtt_client.on_connect = self.on_connect
+        self.mqtt_client.on_message = self.on_message
+        # Replace 'your-endpoint' with your AWS IoT endpoint
+        self.mqtt_client.connect("your-endpoint.amazonaws.com", 8883)
+        # Start the MQTT client in a separate thread
+        threading.Thread(target=self.mqtt_client.loop_forever, daemon=True).start()
+
+    def on_connect(self, client, userdata, flags, rc):
+        """Callback when the client connects to AWS IoT Core."""
+        if rc == 0:
+            # Connection successful
+            client.subscribe("your/iot/topic")
+        else:
+            # Connection failed
+            print(f"Failed to connect, return code {rc}")
+
+    def on_message(self, client, userdata, msg):
+        """Callback when a message is received from the MQTT topic."""
+        try:
+            message = json.loads(msg.payload.decode())
+            self.latest_data = message
+        except json.JSONDecodeError:
+            print("Received invalid JSON payload")
+
+    def get_latest_data(self) -> Dict[str, Any]:
+        """Retrieve the most recent data from the MQTT topic."""
+        # Wait until data is received
+        while self.latest_data is None:
+            time.sleep(0.1)
+        return self.latest_data
+
+
+def format_data_for_printing() -> str:
     """
-    Main function to format the intelligence briefing data
-    
-    Args:
-        data (Dict[str, Any]): Dictionary containing all the briefing data
-    
+    Format the intelligence briefing data with data from AWS IoT MQTT topic.
+
     Returns:
         str: Formatted briefing ready for printing
     """
+    aggregator = DataAggregator()
+    data = aggregator.get_latest_data()
     formatter = BriefingFormatter()
     return formatter.format_briefing(data)
 
 
 # Example usage
 if __name__ == "__main__":
-    sample_data = {
-        "location": "Plano, TX",
-        "classification": "CONFIDENTIAL",
-        "sentiment": "CAUTIOUS, ELEVATED RISKS",
-        "weather_impact": "MODERATE",
-        "security_level": "ELEVATED",
-        "market_data": {
-            "dow_value": "28,500",
-            "dow_change": "+0.5%",
-            "sp_value": "3,500",
-            "sp_change": "+0.3%",
-            "nasdaq_value": "10,500",
-            "nasdaq_change": "-0.2%",
-            "gold_price": "1,800",
-            "gold_trend": "70",
-            "gold_direction": "Rising",
-            "oil_price": "40",
-            "oil_trend": "50",
-            "oil_direction": "Stable"
-        },
-        "supply_chain": [
-            "Port Congestion: LOW, container costs easing",
-            "Semiconductor Shortages: PERSISTING",
-            "Shipping Status: Atlantic Route: Moderate activity, clear"
-        ],
-        "military": [
-            "Lockheed awarded $5B defense contract",
-            "China increases naval production",
-            "Russia/Ukraine border tension escalated"
-        ],
-        "headlines": [
-            "Middle East: Ceasefire reached",
-            "UN Climate Summit: Agreement on emission reduction"
-        ],
-        "recommendations": [
-            "Hold energy stocks; volatility expected",
-            "Avoid travel to Russia-Ukraine border region"
-        ]
-    }
-    
-    print(format_data_for_printing(sample_data))
+    # Fetch data and print formatted briefing
+    briefing_content = format_data_for_printing()
+    print(briefing_content)
