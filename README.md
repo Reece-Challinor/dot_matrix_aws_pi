@@ -57,18 +57,6 @@ dot-matrix-intelligence-printer/
 
 ## Approach & Architecture 🌐🧩
 
-### High-Level Architecture Diagram
-
-```mermaid
-graph TD;
-    A[Push Button] --> B[Raspberry Pi];
-    B --> C[AWS IoT Core];
-    C <--> D[AWS Lambda Functions];
-    B --> E[Printer];
-    E <-- F[CUPS on Pi];
-    F <-- G[Data from S3/DynamoDB];
-```
-
 ### ASCII Diagram
 
 ```
