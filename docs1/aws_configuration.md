@@ -3,7 +3,7 @@
 ## Introduction
 This document provides a detailed overview of the AWS services used in the Dot Matrix Intelligence Briefing System project. It covers the resources, their connections, data aggregation methods, integration testing, and AWS Well-Architected best practices.
 
-## AWS Resources
+## AWS Resources Overview
 
 ### 1. AWS Lambda
 - **Purpose**: Executes code in response to triggers such as changes in data or system state.
