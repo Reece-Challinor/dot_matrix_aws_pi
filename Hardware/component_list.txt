@@ -1,0 +1,9 @@
+TODO:
+1. Research and list all necessary hardware components for the Dot Matrix Pi project.
+2. Verify compatibility of each component with Raspberry Pi.
+3. Purchase required components.
+4. Document the setup and installation process for each component.
+5. Test each component individually to ensure proper functionality.
+6. Integrate all components and test the complete setup.
+7. Troubleshoot any issues that arise during integration.
+8. Update the component list with any additional items needed.
