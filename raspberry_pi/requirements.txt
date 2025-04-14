@@ -1,0 +1,4 @@
+paho-mqtt==1.6.1
+requests==2.28.1
+pycups==2.0.1
+wiringpi==2.60.1

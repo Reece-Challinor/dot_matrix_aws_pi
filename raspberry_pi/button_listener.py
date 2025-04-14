@@ -2,20 +2,22 @@ import wiringpi as wp
 import time
 import subprocess
 import logging
+import logging.handlers
 import queue
 import threading
 import os
 from pathlib import Path
 from typing import Optional
+import config
 
 class ButtonController:
     """Controls button interaction and print daemon management."""
     
-    def __init__(self, button_pin: int = 17, led_pin: int = 27):
+    def __init__(self, button_pin: int = config.BUTTON_PIN, led_pin: int = config.LED_PIN):
         # Pin Configuration
         self.BUTTON_PIN = button_pin
         self.LED_PIN = led_pin
-        self.DEBOUNCE_TIME = 0.2  # 200ms debounce
+        self.DEBOUNCE_TIME = config.DEBOUNCE_TIME
         
         # Queue for print jobs
         self.print_queue = queue.Queue()
@@ -36,15 +38,12 @@ class ButtonController:
     
     def _setup_logging(self):
         """Configure logging with rotation."""
-        log_dir = Path('/var/log/button_controller')
-        log_dir.mkdir(exist_ok=True)
-        
         self.logger = logging.getLogger('ButtonController')
         self.logger.setLevel(logging.DEBUG)
         
         # File handler with rotation
         handler = logging.handlers.RotatingFileHandler(
-            log_dir / 'button_controller.log',
+            config.LOG_DIR / 'button_controller.log',
             maxBytes=1024*1024,  # 1MB
             backupCount=5
         )
@@ -92,7 +91,7 @@ class ButtonController:
     
     def _check_daemon_script(self) -> bool:
         """Verify print daemon script exists and is executable."""
-        daemon_path = Path('./print_daemon.py')
+        daemon_path = config.BASE_DIR / 'print_daemon.py'
         if not daemon_path.exists():
             self.logger.error("print_daemon.py not found")
             return False
@@ -107,8 +106,9 @@ class ButtonController:
             return None
         
         try:
+            daemon_path = config.BASE_DIR / 'print_daemon.py'
             process = subprocess.Popen(
-                ["python3", "print_daemon.py"],
+                ["python3", str(daemon_path)],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )

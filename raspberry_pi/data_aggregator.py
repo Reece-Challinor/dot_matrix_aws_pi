@@ -4,6 +4,19 @@ import json
 import threading
 import time
 import paho.mqtt.client as mqtt
+import logging
+import config
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(config.LOG_DIR / 'data_aggregator.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger('data_aggregator')
 
 class BriefingFormatter:
     def __init__(self):
@@ -156,35 +169,44 @@ class DataAggregator:
 
     def setup_mqtt(self):
         """Set up MQTT client to connect to AWS IoT Core."""
-        self.mqtt_client = mqtt.Client()
+        self.mqtt_client = mqtt.Client(client_id=f"{config.AWS_IOT_CLIENT_ID}-aggregator")
         self.mqtt_client.tls_set(
-            ca_certs="AmazonRootCA1.pem",
-            certfile="device.pem.crt",
-            keyfile="private.pem.key"
+            ca_certs=str(config.AWS_IOT_ROOT_CA),
+            certfile=str(config.AWS_IOT_CERT),
+            keyfile=str(config.AWS_IOT_PRIVATE_KEY)
         )
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
-        # Replace 'your-endpoint' with your AWS IoT endpoint
-        self.mqtt_client.connect("your-endpoint.amazonaws.com", 8883)
-        # Start the MQTT client in a separate thread
-        threading.Thread(target=self.mqtt_client.loop_forever, daemon=True).start()
+        try:
+            self.mqtt_client.connect(config.AWS_IOT_ENDPOINT, config.AWS_IOT_PORT)
+            # Start the MQTT client in a separate thread
+            threading.Thread(target=self.mqtt_client.loop_forever, daemon=True).start()
+            logger.info("Connected to AWS IoT Core")
+        except Exception as e:
+            logger.error(f"Failed to connect to AWS IoT Core: {e}")
+            raise
 
     def on_connect(self, client, userdata, flags, rc):
         """Callback when the client connects to AWS IoT Core."""
         if rc == 0:
             # Connection successful
-            client.subscribe("your/iot/topic")
+            topic = f"{config.AWS_IOT_TOPIC_BASE}/#"
+            client.subscribe(topic)
+            logger.info(f"Subscribed to topic: {topic}")
         else:
             # Connection failed
-            print(f"Failed to connect, return code {rc}")
+            logger.error(f"Failed to connect to MQTT broker, return code {rc}")
 
     def on_message(self, client, userdata, msg):
         """Callback when a message is received from the MQTT topic."""
         try:
             message = json.loads(msg.payload.decode())
             self.latest_data = message
+            logger.info(f"Received data from topic: {msg.topic}")
         except json.JSONDecodeError:
-            print("Received invalid JSON payload")
+            logger.error("Received invalid JSON payload")
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
 
     def get_latest_data(self) -> Dict[str, Any]:
         """Retrieve the most recent data from the MQTT topic."""

@@ -6,13 +6,14 @@ from typing import Dict, Any
 import paho.mqtt.client as mqtt
 from datetime import datetime
 from pathlib import Path
+import config
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/var/log/print_daemon.log'),
+        logging.FileHandler(config.LOG_DIR / 'print_daemon.log'),
         logging.StreamHandler()
     ]
 )
@@ -21,29 +22,29 @@ logger = logging.getLogger('print_daemon')
 class PrintDaemon:
     def __init__(self):
         # MQTT Configuration
-        self.mqtt_broker = "your-aws-iot-endpoint.iot.region.amazonaws.com"
-        self.mqtt_port = 8883  # Standard AWS IoT Core MQTT port
-        self.mqtt_topic = "intelligence-briefing/#"
+        self.mqtt_broker = config.AWS_IOT_ENDPOINT
+        self.mqtt_port = config.AWS_IOT_PORT
+        self.mqtt_topic = f"{config.AWS_IOT_TOPIC_BASE}/#"
         
         # Printer Configuration
-        self.printer_name = "KX-P1592"  # Your dot matrix printer name in CUPS
-        self.page_width = 80  # Standard dot matrix page width
-        self.temp_file = Path("/tmp/current_briefing.txt")
+        self.printer_name = config.PRINTER_NAME
+        self.page_width = config.PRINTER_PAGE_WIDTH
+        self.temp_file = config.TEMP_BRIEFING_FILE
         
         # Data Storage
         self.current_data: Dict[str, Any] = {}
         
         # Initialize MQTT Client
-        self.client = mqtt.Client()
+        self.client = mqtt.Client(client_id=config.AWS_IOT_CLIENT_ID)
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
         
         # AWS IoT Core Certificate Configuration
         self.client.tls_set(
-            ca_certs="/path/to/root-CA.crt",
-            certfile="/path/to/certificate.pem.crt",
-            keyfile="/path/to/private.pem.key"
+            ca_certs=str(config.AWS_IOT_ROOT_CA),
+            certfile=str(config.AWS_IOT_CERT),
+            keyfile=str(config.AWS_IOT_PRIVATE_KEY)
         )
 
     def check_printer_status(self) -> bool:
@@ -161,7 +162,7 @@ class PrintDaemon:
             logger.info(f"Received {category} data")
             
             # Check if we have all required data categories
-            required_categories = {"weather", "market", "security"}
+            required_categories = set(config.REQUIRED_DATA_CATEGORIES)
             if required_categories.issubset(self.current_data.keys()):
                 if self.check_printer_status():
                     report = self.format_report()
